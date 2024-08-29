@@ -17,6 +17,7 @@ import com.live.lldxo.Enum.GameState;
 import com.live.lldxo.Enum.PlayerType;
 import com.live.lldxo.Models.Bot;
 import com.live.lldxo.Models.Game;
+import com.live.lldxo.Models.Move;
 import com.live.lldxo.Models.Player;
 import com.live.lldxo.Models.Symbol;
 import com.live.lldxo.Strategy.PlayingStartegy.EasyBotPlaying;
@@ -35,7 +36,7 @@ public class PlayActivity extends AppCompatActivity {
     Button resetButton;
     Button[][] buttons;
     Game game;
-    GameController gameController = new GameController();
+    GameController gameController;
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +54,14 @@ public class PlayActivity extends AppCompatActivity {
         List<Player> players = new ArrayList<>();
 
         players.add(new Player(player1Name,new Symbol(player1Symbol.charAt(0)), PlayerType.HUMAN,1L));
-        players.add(new Player(player2Name,new Symbol(player2Symbol.charAt(0)), PlayerType.HUMAN,2L));
+//        players.add(new Player(player2Name,new Symbol(player2Symbol.charAt(0)), PlayerType.HUMAN,2L));
+        players.add(new Bot("Bot",new Symbol('O'), PlayerType.BOT,2L, BotDifficultyLevel.EASY,new EasyBotPlaying()));
 
         List<PlayerWinning> winningsrategy = new ArrayList<>();
         winningsrategy.add(new colWinningStartegy());
         winningsrategy.add(new diagonalWinningStartegy());
         winningsrategy.add(new rowWinningStartegy());
-
+               gameController = new GameController();
             game = gameController.startGame(6,players,winningsrategy);
             updateStatus();
 
@@ -67,10 +69,12 @@ public class PlayActivity extends AppCompatActivity {
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                game = gameController.startGame(6,players,winningsrategy);
-                updateStatus();
-
-                createBoard(boardGridLayout,6);
+                Intent intent = new Intent(getApplicationContext(), PlayActivity.class);
+                intent.putExtra("Name" , player1Name);
+                intent.putExtra("Name1" , player2Name);
+                intent.putExtra("Symbol" , player1Symbol);
+                intent.putExtra("Symbol1" , player2Symbol);
+                startActivity(intent);
             }
         });
 
@@ -109,9 +113,10 @@ public class PlayActivity extends AppCompatActivity {
     private void onCellClicked(int row, int col) {
         System.out.println("Current State Board");
 
-        gameController.displayBoard(game);
+
         int currentPlayerIndex =  game.getNextMovePlayer();
         if (gameController.makeMove(game,row,col)) {
+            gameController.displayBoard(game);
             buttons[row][col].setText(String.valueOf(game.getPlayers().get(currentPlayerIndex).getSymbol().getSymbol()+""));
             if(game.getGameState().equals(GameState.DRAW)){
                 System.out.println("Game has Drawn");
@@ -123,6 +128,25 @@ public class PlayActivity extends AppCompatActivity {
                 System.out.println("Winner is " + gameController.checkWinner(game).getName());
             }else {
                 updateStatus();
+                Player player = game.getPlayers().get(game.getNextMovePlayer());
+                if(player.getPlayerType().equals(PlayerType.BOT)){
+                    Bot bot = (Bot) player;
+                    Move move = bot.makeMove(game.getBoard());
+                    int row1 = move.getCell().getRow();
+                    int col1 = move.getCell().getCol();
+                    gameController.makeMove(game,row1,col1);
+                    buttons[row1][col1].setText(String.valueOf(player.getSymbol().getSymbol()+""));
+                    updateStatus();
+                    if(game.getGameState().equals(GameState.DRAW)){
+                        System.out.println("Game has Drawn");
+                        statusTextView.setText("It's a draw!");
+                        disableButtons();
+                    }else if(game.getGameState().equals(GameState.ENDED)) {
+                        statusTextView.setText(player.getName() + " wins!");
+                        disableButtons();
+                        System.out.println("Winner is " + gameController.checkWinner(game).getName());
+                    }
+                }
             }
         }
     }

@@ -18,7 +18,7 @@ public class colWinningStartegy implements PlayerWinning{
             colMaps.put(col,new HashMap<>());
         }
         Map<Symbol,Integer> currcolMap = colMaps.get(col);
-        currcolMap.put(symbol,currcolMap.getOrDefault(col,0)+1);
+        currcolMap.put(symbol,currcolMap.getOrDefault(symbol,0)+1);
 
         return currcolMap.get(symbol) == board.getSize();
     }

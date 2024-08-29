@@ -31,8 +31,7 @@ public class Bot extends Player{
         this.botPlayingStrategy = botPlayingStrategy;
     }
 
-    @Override
-    public Move makeMove(Board board,int row,int col) {
+    public Move makeMove(Board board) {
 
         Move move = botPlayingStrategy.makeMove(board);
         move.setPlayer(this);

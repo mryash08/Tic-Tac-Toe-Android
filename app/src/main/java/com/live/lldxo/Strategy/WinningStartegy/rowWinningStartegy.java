@@ -19,7 +19,7 @@ public class rowWinningStartegy implements PlayerWinning{
             rowMaps.put(row,new HashMap<>());
         }
         Map<Symbol,Integer> currRowMap = rowMaps.get(row);
-            currRowMap.put(symbol,currRowMap.getOrDefault(row,0)+1);
+            currRowMap.put(symbol,currRowMap.getOrDefault(symbol,0)+1);
 
         return currRowMap.get(symbol) == board.getSize();
     }
